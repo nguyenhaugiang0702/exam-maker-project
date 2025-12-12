@@ -1,28 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { authService } from "@/services/auth.service";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
+    const router = useRouter();
+    const { login, isAuthenticated } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.push("/dashboard");
+        }
+    }, [isAuthenticated, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError("");
         setIsLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Login attempt:", { email, password });
+        try {
+            const response = await authService.login({ email, password });
+            login(response.token, response.user);
+            router.push("/dashboard");
+        } catch (err: any) {
+            setError(err.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+        } finally {
             setIsLoading(false);
-            // TODO: Implement actual login logic
-        }, 1500);
+        }
     };
 
     return (
@@ -50,6 +67,13 @@ export default function LoginPage() {
 
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-5">
+                        {/* Error Message */}
+                        {error && (
+                            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                            </div>
+                        )}
+
                         {/* Email Field */}
                         <div className="space-y-2">
                             <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
