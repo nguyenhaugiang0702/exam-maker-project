@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Mail, Lock, Eye, EyeOff, User, Building2 } from "lucide-react";
+import { authService } from "@/services/auth.service";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { login, isAuthenticated } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -20,24 +23,41 @@ export default function RegisterPage() {
         confirmPassword: "",
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.push("/dashboard");
+        }
+    }, [isAuthenticated, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError("");
 
         if (formData.password !== formData.confirmPassword) {
-            alert("Mật khẩu xác nhận không khớp!");
+            setError("Mật khẩu xác nhận không khớp!");
             return;
         }
 
         setIsLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Register attempt:", formData);
+        try {
+            const response = await authService.register({
+                fullName: formData.fullName,
+                email: formData.email,
+                school: formData.school,
+                password: formData.password,
+            });
+
+            login(response.token, response.user);
+            router.push("/dashboard");
+        } catch (err: any) {
+            setError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
+        } finally {
             setIsLoading(false);
-            // Redirect to login page after successful registration
-            router.push("/login");
-        }, 1500);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +92,13 @@ export default function RegisterPage() {
 
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Error Message */}
+                        {error && (
+                            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                            </div>
+                        )}
+
                         {/* Full Name Field */}
                         <div className="space-y-2">
                             <Label htmlFor="fullName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
