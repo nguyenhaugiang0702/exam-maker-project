@@ -113,7 +113,7 @@ export default function RegisterPage() {
                                     placeholder="Nguyễn Văn A"
                                     value={formData.fullName}
                                     onChange={handleChange}
-                                    className="pl-11 h-12 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    className="pl-11 h-12 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                     required
                                 />
                             </div>
@@ -133,7 +133,7 @@ export default function RegisterPage() {
                                     placeholder="teacher@example.com"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="pl-11 h-12 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    className="pl-11 h-12 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                     required
                                 />
                             </div>
@@ -153,7 +153,7 @@ export default function RegisterPage() {
                                     placeholder="THPT ABC"
                                     value={formData.school}
                                     onChange={handleChange}
-                                    className="pl-11 h-12 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    className="pl-11 h-12 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                     required
                                 />
                             </div>
@@ -173,7 +173,7 @@ export default function RegisterPage() {
                                     placeholder="••••••••"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="pl-11 pr-11 h-12 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    className="pl-11 pr-11 h-12 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                     required
                                     minLength={6}
                                 />
@@ -205,7 +205,7 @@ export default function RegisterPage() {
                                     placeholder="••••••••"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
-                                    className="pl-11 pr-11 h-12 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    className="pl-11 pr-11 h-12 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                     required
                                     minLength={6}
                                 />
