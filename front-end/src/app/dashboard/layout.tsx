@@ -98,12 +98,12 @@ export default function DashboardLayout({
                         <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
                                 <span className="text-white font-semibold text-sm">
-                                    {user?.fullName?.charAt(0).toUpperCase()}
+                                    {user?.name?.charAt(0).toUpperCase()}
                                 </span>
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                                    {user?.fullName}
+                                    {user?.name}
                                 </p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                     {user?.email}
@@ -121,8 +121,8 @@ export default function DashboardLayout({
                                     key={item.name}
                                     href={item.href}
                                     className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         }`}
                                     onClick={() => setSidebarOpen(false)}
                                 >
@@ -162,12 +162,6 @@ export default function DashboardLayout({
                             <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 {navigation.find((item) => item.href === pathname)?.name || "Dashboard"}
                             </h1>
-                        </div>
-
-                        <div className="flex items-center space-x-4">
-                            <span className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">
-                                {user?.school}
-                            </span>
                         </div>
                     </div>
                 </header>
