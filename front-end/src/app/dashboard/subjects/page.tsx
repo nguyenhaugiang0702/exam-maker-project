@@ -1,13 +1,34 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BookOpen, Plus, Edit2, Trash2, X, Save, Search } from "lucide-react";
+import { BookOpen, Plus, Edit2, Trash2, X, Save, Search, FolderOpen } from "lucide-react";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import { subjectService, Subject, CreateSubjectData } from "@/services/subject.service";
+
+// Modal colors for subjects
+const SUBJECT_COLORS = [
+    "from-blue-400 to-blue-600",
+    "from-purple-400 to-purple-600",
+    "from-pink-400 to-pink-600",
+    "from-green-400 to-green-600",
+    "from-yellow-400 to-yellow-600",
+    "from-red-400 to-red-600",
+    "from-indigo-400 to-indigo-600",
+    "from-teal-400 to-teal-600",
+];
 
 export default function SubjectsPage() {
     const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -15,6 +36,13 @@ export default function SubjectsPage() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [pageSize, setPageSize] = useState(12);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // Reset page when filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, pageSize]);
 
     // Form states
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -125,13 +153,13 @@ export default function SubjectsPage() {
     };
 
     const filteredSubjects = subjects.filter(subject =>
-        subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        subject.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (subject.description && subject.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        (subject.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (subject.code?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (subject.description?.toLowerCase() || "").includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -144,54 +172,81 @@ export default function SubjectsPage() {
                 </div>
                 <Button
                     onClick={handleAddNew}
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-105"
                 >
-                    <Plus className="w-4 h-4" />
-                    <span>Thêm môn học</span>
+                    <Plus className="w-5 h-5 mr-2" />
+                    Thêm môn học
                 </Button>
             </div>
 
-            {/* Success/Error Messages */}
-            {success && (
-                <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                    <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
+            {/* Toolbar */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border-gray-100 dark:border-gray-700">
+                {/* Left: Page Size Selector */}
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Hiển thị</span>
+                    <select
+                        value={pageSize}
+                        onChange={(e) => setPageSize(Number(e.target.value))}
+                        className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-16 p-2"
+                    >
+                        <option value={8}>8</option>
+                        <option value={12}>12</option>
+                        <option value={24}>24</option>
+                        <option value={48}>48</option>
+                    </select>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">môn học</span>
                 </div>
-            )}
 
-            {error && (
-                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                    <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                {/* Right: Search */}
+                <div className="relative w-full md:w-72">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <Input
+                        type="text"
+                        placeholder="Tìm kiếm môn học..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 h-10 text-gray-900 w-full bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 transition-all"
+                    />
                 </div>
-            )}
+            </div>
 
-            {/* Form Card */}
+            {/* Modal for Add/Edit */}
             {isFormOpen && (
-                <Card className="border-0 shadow-lg">
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <CardTitle className="text-xl font-bold">
-                                    {editingSubject ? "Chỉnh sửa môn học" : "Thêm môn học mới"}
-                                </CardTitle>
-                                <CardDescription>
-                                    {editingSubject ? "Cập nhật thông tin môn học" : "Nhập thông tin môn học mới"}
-                                </CardDescription>
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-all">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-100 dark:border-gray-800">
+                        <div className="sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-6 py-4 z-10">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                                        {editingSubject ? "Chỉnh sửa môn học" : "Thêm môn học mới"}
+                                    </h2>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        {editingSubject ? "Cập nhật thông tin môn học" : "Nhập thông tin môn học mới"}
+                                    </p>
+                                </div>
+                                <Button
+                                    onClick={handleCloseForm}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                    <X className="w-5 h-5" />
+                                </Button>
                             </div>
-                            <Button
-                                onClick={handleCloseForm}
-                                variant="ghost"
-                                size="sm"
-                                className="text-gray-500 hover:text-gray-700"
-                            >
-                                <X className="w-5 h-5" />
-                            </Button>
                         </div>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                            {/* Error Message in Modal */}
+                            {error && (
+                                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-center space-x-3">
+                                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                    <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name" className="text-gray-900">
+                                    <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Tên môn học <span className="text-red-500">*</span>
                                     </Label>
                                     <Input
@@ -200,7 +255,7 @@ export default function SubjectsPage() {
                                         value={formData.name}
                                         onChange={handleFormChange}
                                         placeholder="Ví dụ: Toán học"
-                                        className="h-11 text-gray-900"
+                                        className="h-11 rounded-lg border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 transition-all"
                                         required
                                         minLength={2}
                                         maxLength={100}
@@ -208,7 +263,7 @@ export default function SubjectsPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="code" className="text-gray-900">
+                                    <Label htmlFor="code" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Mã môn học <span className="text-red-500">*</span>
                                     </Label>
                                     <Input
@@ -217,7 +272,7 @@ export default function SubjectsPage() {
                                         value={formData.code}
                                         onChange={handleFormChange}
                                         placeholder="Ví dụ: MATH101"
-                                        className="h-11 text-gray-900"
+                                        className="h-11 rounded-lg border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 transition-all"
                                         required
                                         minLength={2}
                                         maxLength={20}
@@ -226,7 +281,7 @@ export default function SubjectsPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="description" className="text-gray-900">
+                                <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Mô tả
                                 </Label>
                                 <Textarea
@@ -234,127 +289,172 @@ export default function SubjectsPage() {
                                     name="description"
                                     value={formData.description}
                                     onChange={handleFormChange}
-                                    placeholder="Mô tả về môn học (tùy chọn)"
-                                    className="min-h-[100px] text-gray-900"
+                                    placeholder="Mô tả chi tiết về nội dung môn học..."
+                                    className="min-h-[120px] rounded-lg border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 transition-all resize-none"
                                     maxLength={500}
                                 />
                             </div>
 
-                            <div className="flex space-x-3 pt-4">
-                                <Button
-                                    type="submit"
-                                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
-                                >
-                                    <Save className="w-4 h-4" />
-                                    <span>{editingSubject ? "Cập nhật" : "Thêm mới"}</span>
-                                </Button>
+                            <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-800">
                                 <Button
                                     type="button"
                                     onClick={handleCloseForm}
                                     variant="outline"
-                                    className="text-gray-900"
+                                    className="h-11 text-gray-900 px-6 rounded-lg border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                                 >
-                                    Hủy
+                                    Hủy bỏ
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="h-11 px-6 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/20 transition-all hover:scale-105"
+                                >
+                                    <Save className="w-4 h-4 mr-2" />
+                                    <span>{editingSubject ? "Cập nhật" : "Thêm mới"}</span>
                                 </Button>
                             </div>
                         </form>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             )}
 
-            {/* Subjects List Card */}
-            <Card className="border-0 shadow-lg">
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="text-xl font-bold">Danh sách môn học</CardTitle>
-                        <div className="relative w-64">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                type="text"
-                                placeholder="Tìm kiếm môn học..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 h-10 text-gray-900"
-                            />
-                        </div>
+            {/* Success Message */}
+            {success && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex items-center space-x-3 animate-in fade-in slide-in-from-top-4">
+                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="text-center py-8 text-gray-500">
-                            Đang tải danh sách môn học...
-                        </div>
-                    ) : filteredSubjects.length === 0 ? (
-                        <div className="text-center py-8">
-                            <BookOpen className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                            <p className="text-gray-500">
-                                {searchTerm ? "Không tìm thấy môn học nào" : "Chưa có môn học nào"}
+                    <p className="text-sm font-medium text-green-700 dark:text-green-300">{success}</p>
+                </div>
+            )}
+
+            {/* Content Area */}
+            {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                    <p className="text-gray-500 font-medium">Đang tải danh sách môn học...</p>
+                </div>
+            ) : filteredSubjects.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+                    <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                        <BookOpen className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+                        {searchTerm ? "Không tìm thấy kết quả" : "Danh sách trống"}
+                    </h3>
+                    <p className="text-gray-500 max-w-sm mx-auto">
+                        {searchTerm
+                            ? `Không tìm thấy môn học nào phù hợp với từ khóa "${searchTerm}"`
+                            : "Chưa có môn học nào được tạo. Hãy bắt đầu bằng cách thêm môn học mới."}
+                    </p>
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredSubjects.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((subject, index) => (
+                            <Card
+                                key={subject._id}
+                                className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group relative overflow-hidden bg-white dark:bg-gray-800"
+                            >
+                                <div className="absolute top-0 right-0 w-32 h-32 -mt-8 -mr-8 opacity-10 transition-opacity group-hover:opacity-20">
+                                    <div className={`w-full h-full bg-gradient-to-br ${SUBJECT_COLORS[index % SUBJECT_COLORS.length]} rounded-full blur-2xl`}></div>
+                                </div>
+
+                                <CardHeader className="relative pb-2">
+                                    <div className="flex items-start justify-between">
+                                        <div className={`w-14 h-14 bg-gradient-to-br ${SUBJECT_COLORS[index % SUBJECT_COLORS.length]} rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-300`}>
+                                            <BookOpen className="w-7 h-7 text-white" />
+                                        </div>
+                                        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            <Button
+                                                onClick={(e) => { e.stopPropagation(); handleEdit(subject); }}
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
+                                                title="Sửa"
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(subject._id); }}
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+                                                title="Xóa"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+
+                                <CardContent className="relative pt-4">
+                                    <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                                        {subject.name}
+                                    </h3>
+                                    <div className="flex items-center space-x-2 mb-3">
+                                        <span className="px-2.5 py-1 bg-gray-100 dark:bg-gray-700/50 rounded-md text-xs font-semibold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                            {subject.code}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 min-h-[40px] leading-relaxed">
+                                        {subject.description || "Chưa có mô tả cho môn học này"}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {filteredSubjects.length >= pageSize && (
+                        <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Hiển thị <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> đến <span className="font-medium">{Math.min(currentPage * pageSize, filteredSubjects.length)}</span> trong tổng số <span className="font-medium">{filteredSubjects.length}</span> môn học
                             </p>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
-                                            Tên môn học
-                                        </th>
-                                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
-                                            Mã môn học
-                                        </th>
-                                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
-                                            Mô tả
-                                        </th>
-                                        <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">
-                                            Hành động
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredSubjects.map((subject) => (
-                                        <tr
-                                            key={subject._id}
-                                            className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                                        >
-                                            <td className="py-3 px-4 text-gray-900 dark:text-gray-100 font-medium">
-                                                {subject.name}
-                                            </td>
-                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                                                <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm">
-                                                    {subject.code}
-                                                </code>
-                                            </td>
-                                            <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                                                {subject.description || "-"}
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center justify-end space-x-2">
-                                                    <Button
-                                                        onClick={() => handleEdit(subject)}
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+
+                            <Pagination className="mx-0 w-auto">
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious
+                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                            disabled={currentPage === 1}
+                                            className="text-gray-900 dark:text-gray-100"
+                                        />
+                                    </PaginationItem>
+
+                                    {Array.from({ length: Math.ceil(filteredSubjects.length / pageSize) }, (_, i) => i + 1)
+                                        .filter(page => page === 1 || page === Math.ceil(filteredSubjects.length / pageSize) || Math.abs(page - currentPage) <= 1)
+                                        .map((page, index, array) => (
+                                            <React.Fragment key={page}>
+                                                {index > 0 && array[index - 1] !== page - 1 && (
+                                                    <PaginationItem>
+                                                        <PaginationEllipsis className="text-gray-900 dark:text-gray-100" />
+                                                    </PaginationItem>
+                                                )}
+                                                <PaginationItem>
+                                                    <PaginationLink
+                                                        isActive={currentPage === page}
+                                                        onClick={() => setCurrentPage(page)}
+                                                        className={`text-gray-900 dark:text-gray-100 border ${currentPage === page ? "bg-blue-500 text-white" : ""}`}
                                                     >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => handleDelete(subject._id)}
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                                        {page}
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            </React.Fragment>
+                                        ))}
+
+                                    <PaginationItem>
+                                        <PaginationNext
+                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredSubjects.length / pageSize)))}
+                                            disabled={currentPage === Math.ceil(filteredSubjects.length / pageSize)}
+                                            className="text-gray-900 dark:text-gray-100"
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            )}
         </div>
     );
 }
