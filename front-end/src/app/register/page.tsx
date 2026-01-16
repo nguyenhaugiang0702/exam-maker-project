@@ -16,9 +16,8 @@ export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formData, setFormData] = useState({
-        fullName: "",
+        name: "",
         email: "",
-        school: "",
         password: "",
         confirmPassword: "",
     });
@@ -45,13 +44,12 @@ export default function RegisterPage() {
 
         try {
             const response = await authService.register({
-                fullName: formData.fullName,
+                name: formData.name,
                 email: formData.email,
-                school: formData.school,
                 password: formData.password,
             });
 
-            login(response.token, response.user);
+            login(response.access_token, response.user);
             router.push("/dashboard");
         } catch (err: any) {
             setError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
@@ -108,10 +106,10 @@ export default function RegisterPage() {
                                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                                 <Input
                                     id="fullName"
-                                    name="fullName"
+                                    name="name"
                                     type="text"
                                     placeholder="Nguyễn Văn A"
-                                    value={formData.fullName}
+                                    value={formData.name}
                                     onChange={handleChange}
                                     className="pl-11 h-12 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                     required
@@ -132,26 +130,6 @@ export default function RegisterPage() {
                                     type="email"
                                     placeholder="teacher@example.com"
                                     value={formData.email}
-                                    onChange={handleChange}
-                                    className="pl-11 h-12 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {/* School Field */}
-                        <div className="space-y-2">
-                            <Label htmlFor="school" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Trường học
-                            </Label>
-                            <div className="relative group">
-                                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-                                <Input
-                                    id="school"
-                                    name="school"
-                                    type="text"
-                                    placeholder="THPT ABC"
-                                    value={formData.school}
                                     onChange={handleChange}
                                     className="pl-11 h-12 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                                     required

@@ -33,7 +33,7 @@ export default function LoginPage() {
 
         try {
             const response = await authService.login({ email, password });
-            login(response.token, response.user);
+            login(response.access_token, response.user);
             router.push("/dashboard");
         } catch (err: any) {
             setError(err.message || "Đăng nhập thất bại. Vui lòng thử lại.");

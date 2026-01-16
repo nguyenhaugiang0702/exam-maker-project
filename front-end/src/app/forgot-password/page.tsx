@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { authService } from "@/services/auth.service";
 
 export default function ForgotPasswordPage() {
     const router = useRouter();
@@ -18,17 +19,18 @@ export default function ForgotPasswordPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Password reset request for:", email);
-            setIsLoading(false);
+        try {
+            await authService.forgotPassword(email);
             setIsSuccess(true);
-
-            // Redirect to login after 3 seconds
             setTimeout(() => {
                 router.push("/login");
             }, 3000);
-        }, 1500);
+        } catch (error) {
+            console.error(error);
+            // Optionally set an error state here
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
