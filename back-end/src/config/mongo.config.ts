@@ -1,4 +1,7 @@
-import { MongooseModuleOptions, MongooseOptionsFactory } from '@nestjs/mongoose';
+import {
+  MongooseModuleOptions,
+  MongooseOptionsFactory,
+} from '@nestjs/mongoose';
 import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
