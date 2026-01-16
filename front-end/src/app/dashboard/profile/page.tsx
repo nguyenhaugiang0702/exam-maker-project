@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/services/user.service";
 
 export default function ProfilePage() {
+    const router = useRouter();
+    const { logout } = useAuth();
     const { user, updateUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -20,9 +23,8 @@ export default function ProfilePage() {
 
     // Profile form state
     const [profileData, setProfileData] = useState({
-        fullName: user?.fullName || "",
+        name: user?.name || "",
         email: user?.email || "",
-        school: user?.school || "",
     });
 
     // Password form state
@@ -65,9 +67,8 @@ export default function ProfilePage() {
 
     const handleCancelEdit = () => {
         setProfileData({
-            fullName: user?.fullName || "",
+            name: user?.name || "",
             email: user?.email || "",
-            school: user?.school || "",
         });
         setIsEditing(false);
         setError("");
@@ -102,8 +103,11 @@ export default function ProfilePage() {
                 confirmPassword: "",
             });
             setIsChangingPassword(false);
+            logout();
+            router.push("/login");
         } catch (err: any) {
-            setError(err.message || "Đổi mật khẩu thất bại. Vui lòng thử lại.");
+            const errorMessage = err.response?.data?.message || err.message || "Đổi mật khẩu thất bại. Vui lòng thử lại.";
+            setError(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -147,7 +151,7 @@ export default function ProfilePage() {
                                 onClick={() => setIsEditing(true)}
                                 variant="outline"
                                 size="sm"
-                                className="flex items-center space-x-2"
+                                className="flex items-center space-x-2 text-gray-900"
                             >
                                 <Edit2 className="w-4 h-4" />
                                 <span>Chỉnh sửa</span>
@@ -168,7 +172,7 @@ export default function ProfilePage() {
                                     disabled={isLoading}
                                     variant="outline"
                                     size="sm"
-                                    className="flex items-center space-x-2"
+                                    className="flex items-center space-x-2 text-gray-900"
                                 >
                                     <X className="w-4 h-4" />
                                     <span>Hủy</span>
@@ -182,12 +186,12 @@ export default function ProfilePage() {
                     <div className="flex items-center space-x-6">
                         <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                             <span className="text-white font-bold text-3xl">
-                                {user?.fullName?.charAt(0).toUpperCase()}
+                                {user?.name?.charAt(0).toUpperCase()}
                             </span>
                         </div>
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                {user?.fullName}
+                                {user?.name}
                             </h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {user?.email}
@@ -201,17 +205,17 @@ export default function ProfilePage() {
                     {/* Profile Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label htmlFor="fullName" className="flex items-center space-x-2">
+                            <Label htmlFor="name" className="flex items-center space-x-2">
                                 <User className="w-4 h-4" />
                                 <span>Họ và tên</span>
                             </Label>
                             <Input
-                                id="fullName"
-                                name="fullName"
-                                value={profileData.fullName}
+                                id="name"
+                                name="name"
+                                value={profileData.name}
                                 onChange={handleProfileChange}
                                 disabled={!isEditing}
-                                className="h-11"
+                                className="h-11 text-gray-900"
                             />
                         </div>
 
@@ -227,34 +231,7 @@ export default function ProfilePage() {
                                 value={profileData.email}
                                 onChange={handleProfileChange}
                                 disabled={!isEditing}
-                                className="h-11"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="school" className="flex items-center space-x-2">
-                                <Building2 className="w-4 h-4" />
-                                <span>Trường học</span>
-                            </Label>
-                            <Input
-                                id="school"
-                                name="school"
-                                value={profileData.school}
-                                onChange={handleProfileChange}
-                                disabled={!isEditing}
-                                className="h-11"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="flex items-center space-x-2">
-                                <Calendar className="w-4 h-4" />
-                                <span>Ngày tham gia</span>
-                            </Label>
-                            <Input
-                                value={new Date(user?.createdAt || "").toLocaleDateString("vi-VN")}
-                                disabled
-                                className="h-11 bg-gray-50 dark:bg-gray-800"
+                                className="h-11 text-gray-900"
                             />
                         </div>
                     </div>
@@ -274,7 +251,7 @@ export default function ProfilePage() {
                                 onClick={() => setIsChangingPassword(true)}
                                 variant="outline"
                                 size="sm"
-                                className="flex items-center space-x-2"
+                                className="flex items-center space-x-2 text-gray-900"
                             >
                                 <Lock className="w-4 h-4" />
                                 <span>Đổi mật khẩu</span>
@@ -286,7 +263,7 @@ export default function ProfilePage() {
                     <CardContent>
                         <form onSubmit={handleChangePassword} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
+                                <Label htmlFor="currentPassword" className="text-gray-900">Mật khẩu hiện tại</Label>
                                 <Input
                                     id="currentPassword"
                                     name="currentPassword"
@@ -294,13 +271,13 @@ export default function ProfilePage() {
                                     value={passwordData.currentPassword}
                                     onChange={handlePasswordChange}
                                     placeholder="••••••••"
-                                    className="h-11"
+                                    className="h-11 text-gray-900"
                                     required
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="newPassword">Mật khẩu mới</Label>
+                                <Label htmlFor="newPassword" className="text-gray-900">Mật khẩu mới</Label>
                                 <Input
                                     id="newPassword"
                                     name="newPassword"
@@ -308,14 +285,14 @@ export default function ProfilePage() {
                                     value={passwordData.newPassword}
                                     onChange={handlePasswordChange}
                                     placeholder="••••••••"
-                                    className="h-11"
+                                    className="h-11 text-gray-900"
                                     required
                                     minLength={6}
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
+                                <Label htmlFor="confirmPassword" className="text-gray-900">Xác nhận mật khẩu mới</Label>
                                 <Input
                                     id="confirmPassword"
                                     name="confirmPassword"
@@ -323,7 +300,7 @@ export default function ProfilePage() {
                                     value={passwordData.confirmPassword}
                                     onChange={handlePasswordChange}
                                     placeholder="••••••••"
-                                    className="h-11"
+                                    className="h-11 text-gray-900"
                                     required
                                     minLength={6}
                                 />
@@ -350,6 +327,7 @@ export default function ProfilePage() {
                                     }}
                                     variant="outline"
                                     disabled={isLoading}
+                                    className="text-gray-900"
                                 >
                                     Hủy
                                 </Button>
