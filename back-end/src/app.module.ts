@@ -6,6 +6,7 @@ import { ExamsModule } from './modules/exams/exams.module';
 import { QuestionsModule } from './modules/questions/questions.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { SubjectsModule } from './modules/subjects/subjects.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MongoConfigService } from './config/mongo.config';
@@ -41,8 +42,9 @@ import { MailerModule } from '@nestjs-modules/mailer';
     QuestionsModule,
     ExamsModule,
     AuthModule,
+    SubjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
